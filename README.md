@@ -18,8 +18,3 @@ Papers read -
 14. https://cvpr.thecvf.com/virtual/2025/poster/32637
 15. https://cvpr.thecvf.com/virtual/2025/poster/32726
 16. https://arxiv.org/abs/2510.09173
-
-Datasets to use(potentially):
-https://github.com/akshitac8/OW-DETR
-https://github.com/343gltysprk/ovow
-
