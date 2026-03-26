@@ -18,3 +18,4 @@ Papers read -
 14. https://cvpr.thecvf.com/virtual/2025/poster/32637
 15. https://cvpr.thecvf.com/virtual/2025/poster/32726
 16. https://arxiv.org/abs/2510.09173
+17. https://www.cs.toronto.edu/~zemel/documents/prototypical_networks_nips_2017.pdf?utm_source=chatgpt.com
