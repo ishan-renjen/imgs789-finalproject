@@ -373,9 +373,7 @@ def main(args):
             print('\n')
             print('**************** Buffer loaded')
             print('\n')
-    
  
-    
     if args.pretrain:
        
         print('Initialized from the pre-training model')
@@ -386,17 +384,8 @@ def main(args):
         args.start_epoch = checkpoint['epoch'] + 1
         
     if args.eval:
-     
-                    
-        
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir, args)
-        return
-        
-    
-        
-    
-        
-        
+        return    
         
     if args.resume:
         if args.resume.startswith('https'):
@@ -461,18 +450,10 @@ def main(args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             sampler_train.set_epoch(epoch)
-        
-        
-        
-           
-        
-        
-        
+
         train_stats = train_one_epoch(
             model, criterion, data_loader_train, optimizer, device, epoch, args.nc_epoch, args.clip_max_norm, wandb,args)
-        
-        
-        
+  
         if args.save_buffer:
             criterion.hyperbolic_emb.form_poincare_mean()
             if args.compare_family:
@@ -488,10 +469,7 @@ def main(args):
                     torch.save(criterion.hyperbolic_emb,buffer_paths)
                 
         else:
-            relevant_matrix=None
-          
-        
-        
+            relevant_matrix=None   
         
         lr_scheduler.step()
         if args.output_dir:

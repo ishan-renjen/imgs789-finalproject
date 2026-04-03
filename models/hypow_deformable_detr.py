@@ -356,8 +356,6 @@ class DeformableDETR(nn.Module):
             hyperbolic_emb=[]
         else:
             hyperbolic_emb=None
-      
-        
 
         for lvl in range(hs.shape[0]):
             if lvl == 0:
@@ -378,11 +376,11 @@ class DeformableDETR(nn.Module):
                    
                 else:
                     # print('oui')
-                    if self.args.normalize:
-                        normalize_weight = hs[lvl].weight.data.clone()
-                        normalize_weight= F.normalize(normalize_weight, dim=1, p=2)
-                    else:
-                        normalize_weight=hs[lvl]
+                    # if self.args.normalize:
+                    #     normalize_weight = hs[lvl].weight.data.clone()
+                    #     normalize_weight= F.normalize(normalize_weight, dim=1, p=2) this is broken
+                    # else:
+                    normalize_weight=hs[lvl]
                     
                     hyperbolic_emb.append(normalize_weight)  
           
@@ -1036,8 +1034,6 @@ class SetCriterion(nn.Module):
             "loss_dice": dice_loss(src_masks, target_masks, num_boxes),
         }
         return losses
-    
-   
 
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices

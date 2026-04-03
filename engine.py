@@ -29,6 +29,8 @@ from datetime import datetime
 from pytz import timezone
 import sys
 import pdb
+import numpy as np
+from models.matcher import HungarianMatcher
 
 from pathlib import Path
 import json
@@ -165,16 +167,19 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         panoptic_evaluator = PanopticEvaluator(
             data_loader.dataset.ann_file,
             data_loader.dataset.ann_folder,
-            output_dir=os.path.join(output_dir, "panoptic_eval"),
-        )
+            output_dir=os.path.join(output_dir, "panoptic_eval"))
      
     relevant_matrix=None
-   
+
+    matched_embeddings = []
+    matched_gt_labels = []
+    matched_scores = []
+    matched_image_ids = []
+    all_match_flag = []
                             
     for samples, targets in metric_logger.log_every(data_loader, 10, header):
         samples = samples.to(device)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-      
         outputs = model(samples)
 
         orig_target_sizes = torch.stack([t["orig_size"] for t in targets], dim=0)
@@ -182,8 +187,22 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             results = postprocessors['bbox'](outputs, orig_target_sizes,remove_background,pred_per_im)
         else:
             results = postprocessors['bbox'](outputs, orig_target_sizes)
-       
- 
+
+        outputs = model(samples)
+        indices = criterion.matcher(outputs, targets)
+
+
+        for b in range(len(targets)):
+            emb = outputs["hyperbolic_emb"][b]   # [100,256]
+            query_gt = torch.full((emb.shape[0],), -1, dtype=torch.long, device=emb.device)
+
+            src_idx, tgt_idx = indices[b]
+            query_gt[src_idx] = targets[b]["labels"][tgt_idx]
+
+            matched_embeddings.append(emb.detach().cpu().numpy())
+            matched_gt_labels.append(query_gt.detach().cpu().numpy())
+            all_match_flag.append((query_gt != -1).detach().cpu().numpy())
+
         if 'segm' in postprocessors.keys():
             target_sizes = torch.stack([t["size"] for t in targets], dim=0)
             results = postprocessors['segm'](results, outputs, orig_target_sizes, target_sizes)
@@ -229,8 +248,15 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
         stats['PQ_all'] = panoptic_res["All"]
         stats['PQ_th'] = panoptic_res["Things"]
         stats['PQ_st'] = panoptic_res["Stuff"]
+
+    # save after loop
+    np.save(os.path.join(output_dir, 'hyp_embeddings.npy'), np.array(matched_embeddings))
+    np.save(os.path.join(output_dir, 'hyp_labels.npy'), np.array(matched_gt_labels))
+    np.save(os.path.join(output_dir, 'hyp_scores.npy'), np.array(matched_scores))
+    np.save(os.path.join(output_dir, 'hyp_image_ids.npy'), np.array(matched_image_ids))
+    np.save(os.path.join(output_dir, 'hyp_match_flags.npy'), np.array(all_match_flag))
+
     return stats, coco_evaluator
- 
     
 @torch.no_grad()
 def get_exemplar_replay(model, exemplar_selection, device, data_loader):

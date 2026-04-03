@@ -21,7 +21,7 @@ CUDA_LAUNCH_BLOCKING=1  python -u main_open_world.py \
      --pretrain '/workspace/Hyp-OW/exps/hypow_t1_hierarchical_split.pth'  --load_buffer 
    
 
-## Task 2 fine-tuning
+# # Task 2 fine-tuning
 # CUDA_LAUNCH_BLOCKING=1  python -u main_open_world.py \
 #     --output_dir "exps/hypow_hierarchical_t2" --dataset 'HIERARCHICAL'  --PREV_INTRODUCED_CLS 20 --CUR_INTRODUCED_CLS 20 \
 #     --train_set 't2_train_hierarchical' --test_set 'hierarchical_test' --eval_every 5 --batch_size 3 --lr 1e-4 --num_workers 3  --data_root '/workspace/Hyp-OW/data/OWOD/' \
