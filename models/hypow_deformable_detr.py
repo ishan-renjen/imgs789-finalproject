@@ -137,7 +137,6 @@ def contrastive_loss(x0, x1, tau, hyp_c):
         }
         return loss, stats
     
-    
 def nonzero_tuple(x):
     """
     A 'as_tuple=True' version of torch.nonzero to support torchscript.
@@ -149,8 +148,6 @@ def nonzero_tuple(x):
             
 def _get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
-
-
 
 def sigmoid_focal_loss(inputs, targets, num_boxes, alpha: float = 0.25, gamma: float = 2, num_classes: int = 81, empty_weight: float = 0.1,args=None,use_focal=True):
     """
@@ -185,10 +182,6 @@ def sigmoid_focal_loss(inputs, targets, num_boxes, alpha: float = 0.25, gamma: f
   
     return loss.mean(1).sum() / num_boxes
   
-
-
-
-    
 class DeformableDETR(nn.Module):
     """ This is the Deformable DETR module that performs object detection """
     def __init__(self, backbone, transformer, num_classes, num_queries, num_feature_levels,
@@ -211,20 +204,14 @@ class DeformableDETR(nn.Module):
         self.transformer = transformer
         hidden_dim = transformer.d_model
         
-   
         self.args=args
       
-
         if self.args.use_hyperbolic:
             self.manifold = geoopt.PoincareBall(c=self.args.hyperbolic_c)
             
             # self.fc = nn.Linear(hidden_dim, int(hidden_dim/2))
             self.tpc=ToPoincare(c=self.args.hyperbolic_c,ball_dim=hidden_dim,riemannian=False,clip_r=self.args.clip_r)
             #self.tpc=ToPoincare(c=self.args.hyperbolic_c,ball_dim=args.hidden_dim,riemannian=False,clip_r=self.args.clip_r)
-     
-        
-        
-        
    
         self.class_embed = nn.Linear(hidden_dim, num_classes)
             
@@ -297,9 +284,6 @@ class DeformableDETR(nn.Module):
             self.transformer.decoder.class_embed = self.class_embed
             for box_embed in self.bbox_embed:
                 nn.init.constant_(box_embed.layers[-1].bias.data[2:], 0.0)
-                
-                
-  
 
     def forward(self, samples: NestedTensor,relevant_matrix=None,eval=False):
         """ The forward expects a NestedTensor, which consists of:
@@ -349,9 +333,6 @@ class DeformableDETR(nn.Module):
         outputs_classes = []
         outputs_coords = []
         
-        
-        
-        
         if self.args.use_hyperbolic:
             hyperbolic_emb=[]
         else:
@@ -366,8 +347,6 @@ class DeformableDETR(nn.Module):
             # ForkedPdb().set_trace()
        
             outputs_class = self.class_embed[lvl](hs[lvl])
-            
-            
            
             if self.args.use_hyperbolic:
                 
@@ -434,9 +413,6 @@ class DeformableDETR(nn.Module):
     def _set_aux_loss(self, outputs_class, outputs_coord, hyperbolic_emb=None):
         return [{'pred_logits': a, 'pred_boxes': c,'hyperbolic_emb':d}
                     for a, c,d in zip(outputs_class[:-1], outputs_coord[:-1],hyperbolic_emb[:-1])]
-
-            
-
 
 class SetCriterion(nn.Module):
     """ This class computes the loss for DETR.
@@ -1131,7 +1107,6 @@ class SetCriterion(nn.Module):
                 losses.update(l_dict)
         return losses
 
-
 class PostProcess(nn.Module):
     """ This module converts the model's output into the format expected by the coco api"""
     def __init__(self, invalid_cls_logits, temperature=1, pred_per_im=100,args=None):
@@ -1183,7 +1158,6 @@ class PostProcess(nn.Module):
         results = [{'scores': s, 'labels': l, 'boxes': b} for s, l, b in zip(scores, labels, boxes)]
         return results
 
-
 class MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
 
@@ -1197,8 +1171,7 @@ class MLP(nn.Module):
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
         return x
-    
-    
+       
 class ExemplarSelection(nn.Module):
     def __init__(self, args, num_classes, matcher, invalid_cls_logits, temperature=1):
         super().__init__()
@@ -1234,7 +1207,6 @@ class ExemplarSelection(nn.Module):
         outputs_without_aux = {k: v for k, v in outputs.items() if k != 'aux_outputs' and k != 'enc_outputs' and k !='pred_obj'}
         indices = self.matcher(outputs_without_aux, targets)       
         return self.calc_energy_per_image(outputs, targets, indices)
-
 
 def build(args):
     num_classes = args.num_classes
